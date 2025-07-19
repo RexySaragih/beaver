@@ -64,7 +64,7 @@ export async function generateDocumentation(canvasData: CanvasData): Promise<any
             documentationType: 'complete'
           }
         });
-        console.log('Tool result received:', result.toString().substring(0, 120) + '...');
+        console.log('Tool result received:', result.toString() + '...');
 
       } catch (toolError) {
         console.error('Failed to call analyze-diagram tool:', toolError);
@@ -76,7 +76,7 @@ export async function generateDocumentation(canvasData: CanvasData): Promise<any
         ? result.content[0].text 
         : 'Failed to analyze diagram';
       try {
-        console.log('Parsing result text:', resultText.substring(0, 120) + '...');
+        console.log('Parsing result text:', resultText + '...');
         
         // Check if the response is an error
         const parsedResult = JSON.parse(resultText);

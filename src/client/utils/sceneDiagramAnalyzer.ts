@@ -5,12 +5,14 @@ export interface DiagramComponent {
   name: string;
   type: string;
   position: { x: number; y: number };
+  tag?: string | null;
 }
 
 export interface DiagramRelationship {
   from: string;
   to: string;
   type: string;
+  condition?: string | null;
 }
 
 export interface SceneDiagramAnalysis {

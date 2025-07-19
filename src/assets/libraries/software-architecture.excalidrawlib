@@ -4,6 +4,7 @@
   "source": "https://excalidraw.com",
   "library": [
     [
+      "Process",
       {
         "tag": "Process",
         "type": "rectangle",
@@ -32,6 +33,7 @@
       }
     ],
     [
+      "User Request",
       {
         "tag": "User Request",
         "type": "text",
@@ -52,7 +54,9 @@
         "width": 44,
         "height": 20,
         "seed": 2065839308,
-        "groupIds": [],
+        "groupIds": [
+          "UEEPHIC4U83RPPLBCjH3P"
+        ],
         "strokeSharpness": "sharp",
         "boundElementIds": [],
         "fontSize": 16,
@@ -313,6 +317,7 @@
       }
     ],
     [
+      "Application Server",
       {
         "tag": "Application Server",
         "type": "rectangle",
@@ -373,6 +378,7 @@
       }
     ],
     [
+      "Multi Instance Server",
       {
         "tag": "Multi Instance Server",
         "type": "rectangle",
@@ -488,6 +494,7 @@
       }
     ],
     [
+      "Server",
       {
         "tag": "Server",
         "type": "rectangle",
@@ -548,6 +555,7 @@
       }
     ],
     [
+      "Multi Instance",
       {
         "tag": "Multi Instance",
         "type": "rectangle",
@@ -663,6 +671,7 @@
       }
     ],
     [
+      "Storage",
       {
         "tag": "Storage",
         "type": "line",
@@ -806,6 +815,7 @@
       }
     ],
     [
+      "Relational Database",
       {
         "tag": "Relational Database",
         "type": "line",
@@ -1192,6 +1202,7 @@
       }
     ],
     [
+      "Object Storage",
       {
         "tag": "Object Storage",
         "type": "line",
@@ -1471,6 +1482,7 @@
       }
     ],
     [
+      "Cold Storage",
       {
         "tag": "Cold Storage",
         "type": "line",
@@ -2290,6 +2302,7 @@
       }
     ],
     [
+      "Document DB",
       {
         "tag": "Document DB",
         "type": "line",
@@ -2531,6 +2544,7 @@
       }
     ],
     [
+      "Columnar DB",
       {
         "tag": "Columnar DB",
         "type": "text",
@@ -2848,6 +2862,7 @@
       }
     ],
     [
+      "Graph DB",
       {
         "tag": "Graph DB",
         "type": "text",
@@ -3593,6 +3608,7 @@
       }
     ],
     [
+      "Stack Storage",
       {
         "tag": "Stack Storage",
         "type": "line",
@@ -3874,6 +3890,7 @@
       }
     ],
     [
+      "Cache",
       {
         "tag": "Cache",
         "type": "rectangle",
@@ -4492,6 +4509,7 @@
       }
     ],
     [
+      "Authentication",
       {
         "tag": "Authentication",
         "type": "rectangle",
@@ -5048,6 +5066,7 @@
       }
     ],
     [
+      "DNS Server",
       {
         "tag": "DNS Server",
         "type": "rectangle",
@@ -5455,6 +5474,7 @@
       }
     ],
     [
+      "Load Balancer",
       {
         "tag": "Load Balancer",
         "type": "rectangle",
@@ -5788,6 +5808,7 @@
       }
     ],
     [
+      "Message Queue",
       {
         "tag": "Message Queue",
         "type": "line",
@@ -6159,6 +6180,7 @@
       }
     ],
     [
+      "Pipeline",
       {
         "tag": "Pipeline",
         "type": "ellipse",
@@ -6358,6 +6380,7 @@
       }
     ],
     [
+      "Cloud",
       {
         "tag": "Cloud",
         "type": "rectangle",
@@ -6667,6 +6690,7 @@
       }
     ],
     [
+       "Content Delivery Network",
       {
         "tag": "Content Delivery Network",
         "type": "rectangle",
@@ -7171,6 +7195,7 @@
       }
     ],
     [
+      "Archive",
       {
         "tag": "Archive",
         "type": "line",
@@ -7851,6 +7876,7 @@
       }
     ],
     [
+      "Mobile Device",
       {
         "tag": "Mobile Device",
         "type": "text",
@@ -8140,6 +8166,7 @@
       }
     ],
     [
+      "Web Application",
       {
         "tag": "Web Application",
         "type": "text",
@@ -8605,6 +8632,7 @@
       }
     ],
     [
+      "slack",
       {
         "tag": "slack",
         "type": "rectangle",
@@ -9234,6 +9262,7 @@
       }
     ],
     [
+      "SSH",
       {
         "tag": "SSH",
         "id": "JvctwpOZLFW11k5vaREGL",
@@ -9300,6 +9329,7 @@
       }
     ],
     [
+      "SFTP",
       {
         "tag": "SFTP",
         "type": "rectangle",
