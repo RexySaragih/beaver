@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useSearchParams, useNavigate } from 'react-router-dom';
 import { Excalidraw } from '@excalidraw/excalidraw';
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/types/element/types';
 import type { AppState } from '@excalidraw/excalidraw/types/types';
@@ -10,6 +10,9 @@ import { analyzeSceneDiagram } from './utils/sceneDiagramAnalyzer';
 import { generateDocxDocumentation } from './utils/documentGenerator';
 import softwareArchitectureLibrary from '../assets/libraries/software-architecture.excalidrawlib';
 import './styles/documentation.css';
+import socketClient from './services/socketClient';
+import type { RoomData, CanvasUpdate } from './services/socketClient';
+import axios from 'axios';
 
 interface Documentation {
   title: string;
@@ -71,8 +74,80 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [isSocketReady, setIsSocketReady] = useState(false);
   const excalidrawAPIRef = useRef<any>(null);
   const documentationContainerRef = useRef<HTMLDivElement>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const isInitialLoad = useRef(true);
+  const isRemoteUpdate = useRef(false);
+  const sendCanvasUpdateDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Room management: create or join room on mount
+  useEffect(() => {
+    let ignore = false;
+    async function setupRoom() {
+      let urlRoomId = searchParams.get('room');
+      if (!urlRoomId) {
+        // Create a new room
+        try {
+          const res = await axios.post('/api/room/create');
+          const data = res.data as { roomId: string };
+          urlRoomId = data.roomId;
+          setSearchParams({ room: urlRoomId || '' });
+          setRoomId(urlRoomId);
+        } catch (e) {
+          setError('Failed to create room');
+          return;
+        }
+      } else {
+        setRoomId(urlRoomId);
+      }
+    }
+    setupRoom();
+    return () => { ignore = true; };
+  }, []);
+
+  // Connect socket and join room when roomId is set
+  useEffect(() => {
+    if (!roomId) return;
+    socketClient.connect();
+    socketClient.setOnConnect(() => {
+      socketClient.joinRoom(roomId!);
+    });
+    socketClient.setOnRoomJoined((data: RoomData) => {
+      setIsSocketReady(true);
+      // Only set elements/appState on initial load
+      if (isInitialLoad.current) {
+        setElements(data.elements || []);
+        if (excalidrawAPIRef.current) {
+          const safeAppState = {
+            ...(data.appState || {}),
+            collaborators: Array.isArray(data.appState?.collaborators) ? data.appState.collaborators : []
+          };
+          excalidrawAPIRef.current.updateScene({
+            elements: data.elements || [],
+            appState: safeAppState
+          });
+        }
+        isInitialLoad.current = false;
+      }
+    });
+    socketClient.setOnCanvasUpdate((data: CanvasUpdate) => {
+      // Prevent feedback loop
+      isRemoteUpdate.current = true;
+      setElements(data.elements);
+      if (excalidrawAPIRef.current) {
+        excalidrawAPIRef.current.updateScene({ elements: data.elements });
+      }
+      setTimeout(() => { isRemoteUpdate.current = false; }, 0);
+    });
+    socketClient.setOnError((msg) => setError(msg));
+    return () => {
+      socketClient.disconnect();
+    };
+  }, [roomId]);
 
   // Load the custom library into Excalidraw's built-in library
   useEffect(() => {
@@ -96,12 +171,29 @@ const App: React.FC = () => {
     }
   }, [error]);
 
-  const handleChange = useCallback((
-    elements: readonly ExcalidrawElement[],
-    state: AppState,
-  ) => {
+  // Only update local state on change
+  const handleChange = useCallback((elements: readonly ExcalidrawElement[], state: AppState) => {
     setElements(elements);
   }, []);
+
+  // Send socket update only on pointer up (mouse/touch release)
+  useEffect(() => {
+    if (!isSocketReady || !excalidrawAPIRef.current) return;
+    const container = document.querySelector('.excalidraw');
+    if (!container) return;
+    const handlePointerUp = () => {
+      console.log('[Collaborative] Pointer up detected, sending socket update');
+      if (!isRemoteUpdate.current && excalidrawAPIRef.current) {
+        const elements = excalidrawAPIRef.current.getSceneElements();
+        const appState = excalidrawAPIRef.current.getAppState ? excalidrawAPIRef.current.getAppState() : undefined;
+        socketClient.sendCanvasUpdate([...elements] as any[], appState);
+      }
+    };
+    container.addEventListener('pointerup', handlePointerUp);
+    return () => {
+      container.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [isSocketReady, excalidrawAPIRef.current]);
 
   const generateDocumentation = async () => {
     if (!excalidrawAPIRef.current) return;
@@ -240,12 +332,43 @@ const App: React.FC = () => {
     );
   };
 
+  // Handler to create a new room
+  const handleNewRoom = async () => {
+    try {
+      // Disconnect from current room
+      socketClient.disconnect();
+      setIsSocketReady(false);
+      setElements([]);
+      if (excalidrawAPIRef.current) {
+        excalidrawAPIRef.current.updateScene({ elements: [] });
+      }
+      // Create a new room
+      const res = await axios.post('/api/room/create');
+      const data = res.data as { roomId: string };
+      setSearchParams({ room: data.roomId });
+      setRoomId(data.roomId);
+      isInitialLoad.current = true;
+    } catch (e) {
+      setError('Failed to create new room');
+    }
+  };
+
   return (
     <Routes>
       <Route
         path="/"
         element={
-          <Layout>
+          <Layout
+            sidebar={roomId ? (
+              <div style={{ fontSize: 14, color: '#888' }}>
+                <div><b>Room ID:</b> <span style={{ fontFamily: 'monospace' }}>{roomId}</span></div>
+                <div style={{ fontSize: 12 }}>Share this URL to collaborate</div>
+                <button onClick={handleNewRoom} style={{ marginTop: 12, padding: '6px 12px', fontSize: 13, borderRadius: 4, border: '1px solid #ccc', background: '#f5f5f5', cursor: 'pointer' }}>
+                  New Room
+                </button>
+              </div>
+            ) : null}
+          >
             <div className="app-container">
               <button 
                 className="floating-doc-button" 
